@@ -19,6 +19,13 @@ renderer.xr.enabled = true;
 renderer.xr.setReferenceSpaceType('local');
 document.body.appendChild(VRButton.createButton(renderer));
 
+// -- INTEGRACIÓN CONTROL VR --
+const controller = renderer.xr.getController(0);
+scene.add(controller);
+controller.addEventListener('select', () => {
+  startGame();
+});
+
 // Luz
 scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 const pointLight = new THREE.PointLight(0xffffff, 1);
@@ -244,39 +251,40 @@ function animate() {
     const currentDistance = (ball.position.y - initialY).toFixed(2);
     distanceDisplay.textContent = `Distancia: ${currentDistance} unidades`;
 
-    checkCollisions();
+    // Actualizar cámara atrás y un poco arriba
+    cameraHolder.position.set(0, ball.position.y + 2, 5);
+
     generateNewObstaclesAboveBall();
-
-    obstacles.forEach(obs => {
-      switch (obs.userData.type) {
-        case 'horizontalBounce':
-          obs.position.x += obs.userData.speed;
-          if (obs.position.x > 5 || obs.position.x < -5) obs.userData.speed *= -1;
-          break;
-        case 'circular':
-          obs.userData.angle += obs.userData.speed;
-          obs.position.x = obs.userData.xStart + Math.cos(obs.userData.angle) * 3;
-          obs.position.y = obs.userData.yStart;
-          break;
-        case 'rotating':
-          obs.rotation.z += obs.userData.speed;
-          break;
-        case 'zigzag':
-          obs.userData.angle += obs.userData.speed;
-          obs.position.x = obs.userData.xStart + Math.sin(obs.userData.angle) * 2;
-          obs.position.y = obs.userData.yStart + Math.abs(Math.sin(obs.userData.angle * 0.5)) * 1;
-          break;
-      }
-    });
-
     removeObstaclesBelow(ball.position.y - 10);
 
-    // 💡 Actualizar posición del "cameraHolder" detrás de la bola
-    cameraHolder.position.set(ball.position.x, ball.position.y + 1, ball.position.z + 10);
+    for (const obs of obstacles) {
+      const ud = obs.userData;
+      switch (ud.type) {
+        case 'horizontalBounce':
+          obs.position.x += ud.speed;
+          if (obs.position.x > 4 || obs.position.x < -4) ud.speed = -ud.speed;
+          break;
+        case 'circular':
+          ud.angle += ud.speed;
+          obs.position.x = Math.cos(ud.angle) * 4;
+          obs.position.y = ud.yStart + Math.sin(ud.angle) * 2;
+          break;
+        case 'rotating':
+          obs.rotation.z += 0.01;
+          break;
+        case 'zigzag':
+          obs.position.x = ud.xStart + Math.sin(ud.angle) * 2;
+          ud.angle += ud.speed;
+          break;
+      }
+    }
+
+    checkCollisions();
   }
 
   renderer.render(scene, camera);
 }
+
 renderer.setAnimationLoop(animate);
 
 // OrbitControls opcional para desarrollo fuera de VR
