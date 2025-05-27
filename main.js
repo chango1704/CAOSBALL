@@ -272,7 +272,7 @@ function animate() {
     removeObstaclesBelow(ball.position.y - 10);
 
     // 💡 Actualizar posición del "cameraHolder" detrás de la bola
-    cameraHolder.position.set(ball.position.x, ball.position.y + 1, ball.position.z + 5);
+    cameraHolder.position.set(ball.position.x, ball.position.y + 1, ball.position.z + 10);
   }
 
   renderer.render(scene, camera);
