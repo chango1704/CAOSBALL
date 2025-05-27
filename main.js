@@ -290,7 +290,7 @@ function animate() {
     });
 
     removeObstaclesBelow(ball.position.y - 10);
-    camera.position.y = ball.position.y;
+    camera.position.z = ball.position.y;
   }
 
   renderer.render(scene, camera);
