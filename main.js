@@ -2,9 +2,15 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 
+// Escena, cámara y renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 0, 10);
+camera.position.set(0, 1, 5); // Posición relativa detrás de la bola
+
+// Añadir la cámara a un Group que usaremos como "holder"
+const cameraHolder = new THREE.Group();
+cameraHolder.add(camera);
+scene.add(cameraHolder);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -20,7 +26,7 @@ pointLight.position.set(0, 10, 10);
 scene.add(pointLight);
 
 // Bola del jugador
-const playerColor = 0x0000ff; // Azul
+const playerColor = 0x0000ff;
 const ballGeometry = new THREE.SphereGeometry(0.3, 32, 32);
 const ballMaterial = new THREE.MeshStandardMaterial({ color: playerColor });
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
@@ -28,10 +34,10 @@ ball.position.set(0, -2, 0);
 scene.add(ball);
 const initialY = ball.position.y;
 
-// Mostrar distancia en tiempo real
+// Mostrar distancia
 const distanceDisplay = document.createElement('div');
 distanceDisplay.style.position = 'fixed';
-distanceDisplay.style.top = '11px'; // Corregido: sin espacio
+distanceDisplay.style.top = '11px';
 distanceDisplay.style.left = '10px';
 distanceDisplay.style.color = 'white';
 distanceDisplay.style.fontSize = '20px';
@@ -51,38 +57,21 @@ function createObstacleAtY(y) {
   const types = ['horizontalBounce', 'circular', 'rotating', 'zigzag'];
   const type = types[Math.floor(Math.random() * types.length)];
   const color = obstacleColors[Math.floor(Math.random() * obstacleColors.length)];
-
-  let geometry;
-  let xStart;
+  let geometry, xStart;
 
   if (type === 'rotating') {
     const cornerX = 4;
     xStart = Math.random() < 0.5 ? -cornerX : cornerX;
     geometry = new THREE.CylinderGeometry(0.1, 0.1, 4, 20);
-  } else if (type === 'circular') {
-    xStart = Math.random() * 8 - 4;
-    geometry = new THREE.BoxGeometry(1.5, 0.5, 0.5);
-  } else if (type === 'zigzag') {
-    xStart = Math.random() * 8 - 4;
-    geometry = new THREE.BoxGeometry(1.2, 0.4, 0.5);
   } else {
     xStart = Math.random() * 8 - 4;
-    geometry = new THREE.BoxGeometry(1.5, 0.5, 0.5);
+    geometry = new THREE.BoxGeometry(type === 'zigzag' ? 1.2 : 1.5, 0.5, 0.5);
   }
 
   const material = new THREE.MeshStandardMaterial({ color });
   const obstacle = new THREE.Mesh(geometry, material);
   obstacle.position.set(xStart, y, 0);
-
-  obstacle.userData = {
-    speed,
-    color,
-    type,
-    xStart,
-    yStart: y,
-    angle: 0
-  };
-
+  obstacle.userData = { speed, color, type, xStart, yStart: y, angle: 0 };
   scene.add(obstacle);
   obstacles.push(obstacle);
 }
@@ -103,20 +92,17 @@ function createDecorations() {
   const columnXOffset = 5.5;
 
   for (let i = -20; i <= 500; i += cylinderSpacing) {
-    const leftCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, cylinderHeight, 12), decoMaterial);
-    leftCylinder.position.set(-columnXOffset, i, 0);
-    scene.add(leftCylinder);
+    const left = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, cylinderHeight, 12), decoMaterial);
+    left.position.set(-columnXOffset, i, 0);
+    scene.add(left);
 
-    const rightCylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, cylinderHeight, 12), decoMaterial);
-    rightCylinder.position.set(columnXOffset, i, 0);
-    scene.add(rightCylinder);
+    const right = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, cylinderHeight, 12), decoMaterial);
+    right.position.set(columnXOffset, i, 0);
+    scene.add(right);
   }
 
   for (let i = 0; i < 1000; i++) {
-    const star = new THREE.Mesh(
-      new THREE.SphereGeometry(0.09, 6, 6),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
-    );
+    const star = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
     const x = (Math.random() - 0.4) * 100;
     const y = (Math.random() - 0.4) * 800;
     const z = (Math.random() - 0.4) * 100;
@@ -188,12 +174,7 @@ function showGameOver() {
   elapsedTime = performance.now() - startTime;
   const seconds = (elapsedTime / 1000).toFixed(2);
   const distance = (ball.position.y - initialY).toFixed(2);
-
-  timeText.innerHTML = `
-    Duraste jugando: ${seconds} segundos<br>
-    Distancia recorrida: ${distance} unidades
-  `;
-
+  timeText.innerHTML = `Duraste jugando: ${seconds} segundos<br>Distancia recorrida: ${distance} unidades`;
   gameOverContainer.style.display = 'block';
   music.pause();
   music.currentTime = 0;
@@ -202,7 +183,7 @@ function showGameOver() {
 function resetGame() {
   ball.position.set(0, -2, 0);
   velocityY = 0;
-  camera.position.y = 0;
+  cameraHolder.position.set(0, 0, 0);
   obstacles.forEach(obs => scene.remove(obs));
   obstacles = [];
   createInitialObstacles();
@@ -210,7 +191,6 @@ function resetGame() {
   gameOver = false;
   started = false;
   elapsedTime = 0;
-
   music.pause();
   music.currentTime = 0;
 }
@@ -251,6 +231,7 @@ function checkCollisions() {
   }
 }
 
+// ⬇ ANIMATE con cámara detrás
 function animate() {
   if (started && !gameOver) {
     velocityY += gravity;
@@ -274,8 +255,7 @@ function animate() {
           break;
         case 'circular':
           obs.userData.angle += obs.userData.speed;
-          const radius = 3;
-          obs.position.x = obs.userData.xStart + Math.cos(obs.userData.angle) * radius;
+          obs.position.x = obs.userData.xStart + Math.cos(obs.userData.angle) * 3;
           obs.position.y = obs.userData.yStart;
           break;
         case 'rotating':
@@ -290,13 +270,16 @@ function animate() {
     });
 
     removeObstaclesBelow(ball.position.y - 10);
-    camera.position.z = ball.position.y;
+
+    // 💡 Actualizar posición del "cameraHolder" detrás de la bola
+    cameraHolder.position.set(ball.position.x, ball.position.y + 1, ball.position.z + 5);
   }
 
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
 
+// OrbitControls opcional para desarrollo fuera de VR
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableZoom = false;
 controls.enablePan = false;
