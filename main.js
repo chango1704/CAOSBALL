@@ -13,7 +13,6 @@ renderer.xr.enabled = true;
 renderer.xr.setReferenceSpaceType('local');
 document.body.appendChild(VRButton.createButton(renderer));
 
-
 // Luz
 scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 const pointLight = new THREE.PointLight(0xffffff, 1);
@@ -27,13 +26,12 @@ const ballMaterial = new THREE.MeshStandardMaterial({ color: playerColor });
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
 ball.position.set(0, -2, 0);
 scene.add(ball);
-
-const initialY = ball.position.y; // 🟢 Guardamos posición inicial
+const initialY = ball.position.y;
 
 // Mostrar distancia en tiempo real
 const distanceDisplay = document.createElement('div');
 distanceDisplay.style.position = 'fixed';
-distanceDisplay.style.top = '11 px';
+distanceDisplay.style.top = '11px'; // Corregido: sin espacio
 distanceDisplay.style.left = '10px';
 distanceDisplay.style.color = 'white';
 distanceDisplay.style.fontSize = '20px';
@@ -96,7 +94,6 @@ function createInitialObstacles() {
   }
   maxObstacleY = 5 * obstacleSpacing + 2;
 }
-
 createInitialObstacles();
 
 function createDecorations() {
@@ -127,7 +124,6 @@ function createDecorations() {
     scene.add(star);
   }
 }
-
 createDecorations();
 
 function generateNewObstaclesAboveBall() {
@@ -160,7 +156,7 @@ const music = new Audio('cancionxd.mp3');
 music.loop = true;
 music.volume = 0.5;
 
-// Game over UI
+// Game Over UI
 const gameOverContainer = document.createElement('div');
 gameOverContainer.style.position = 'fixed';
 gameOverContainer.style.top = '50%';
@@ -191,7 +187,7 @@ function showGameOver() {
   started = false;
   elapsedTime = performance.now() - startTime;
   const seconds = (elapsedTime / 1000).toFixed(2);
-  const distance = (ball.position.y - initialY).toFixed(2); // 🚀
+  const distance = (ball.position.y - initialY).toFixed(2);
 
   timeText.innerHTML = `
     Duraste jugando: ${seconds} segundos<br>
@@ -264,7 +260,6 @@ function animate() {
       showGameOver();
     }
 
-    // 🟢 Actualiza distancia en tiempo real
     const currentDistance = (ball.position.y - initialY).toFixed(2);
     distanceDisplay.textContent = `Distancia: ${currentDistance} unidades`;
 
@@ -300,10 +295,8 @@ function animate() {
 
   renderer.render(scene, camera);
 }
-
 renderer.setAnimationLoop(animate);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableZoom = false;
 controls.enablePan = false;
-//controls.update();
