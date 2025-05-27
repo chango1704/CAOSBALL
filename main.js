@@ -296,6 +296,7 @@ function animate() {
 
     removeObstaclesBelow(ball.position.y - 10);
     camera.position.y = ball.position.y;
+    camara.position.x= 30
   }
 
   renderer.render(scene, camera);
