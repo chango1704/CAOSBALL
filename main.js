@@ -174,7 +174,7 @@ function showGameOver() {
   elapsedTime = performance.now() - startTime;
   const seconds = (elapsedTime / 1000).toFixed(2);
   const distance = (ball.position.y - initialY).toFixed(2);
-  timeText.innerHTML = Duraste jugando: ${seconds} segundos<br>Distancia recorrida: ${distance} unidades;
+  timeText.innerHTML = `Duraste jugando: ${seconds} segundos<br>Distancia recorrida: ${distance} unidades`;
   gameOverContainer.style.display = 'block';
   music.pause();
   music.currentTime = 0;
@@ -242,7 +242,7 @@ function animate() {
     }
 
     const currentDistance = (ball.position.y - initialY).toFixed(2);
-    distanceDisplay.textContent = Distancia: ${currentDistance} unidades;
+    distanceDisplay.textContent = `Distancia: ${currentDistance} unidades`;
 
     checkCollisions();
     generateNewObstaclesAboveBall();
